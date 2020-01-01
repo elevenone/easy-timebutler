@@ -36,23 +36,21 @@ async function handleLoginFormSubmit() {
         password: document.querySelector('input[name="password"]').value,
     });
 
-    await fetch('/login?' + credentials.toString(), {
-        method: 'POST',
-    })
-    .then((response) => {
-        return response.json();
-    })
-    .then((responseData) => {
-        if (responseData.errors) {
-            document.querySelector('#error-message').innerText = responseData.errors.shift();
-            return;
-        }
-        localStorage.setItem('et_token', responseData.data.token);
-        showMainScreen();
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+    await fetch('/login?' + credentials.toString(), { method: 'POST', })
+        .then((response) => {
+            return response.json();
+        })
+        .then((responseData) => {
+            if (responseData.errors) {
+                document.querySelector('#error-message').innerText = responseData.errors.shift();
+                return;
+            }
+            localStorage.setItem('et_token', responseData.data.token);
+            showMainScreen();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
 }
 
 async function showMainScreen() {
@@ -81,7 +79,7 @@ async function handleStopclockBtnClick(evt) {
         token: localStorage.getItem('et_token'),
     });
 
-    await fetch('/stopclock?' + params.toString())
+    await fetch('/stopclock?' + params.toString(), { method: 'POST' })
         .then((response) => {
             return response.json();
         })

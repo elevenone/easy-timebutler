@@ -27,4 +27,11 @@ return [
         'pattern' => '/dashboard',
         'handler' => 'Nekudo\EasyTimebutler\Actions\Xhr\ShowDashboardAction',
     ],
+
+    // stopclock actions
+    'stopclock' => [
+        'method' => 'POST',
+        'pattern' => '/stopclock',
+        'handler' => 'Nekudo\EasyTimebutler\Actions\Xhr\InvokeStopclockAction',
+    ],
 ];
