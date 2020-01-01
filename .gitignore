@@ -1,0 +1,7 @@
+# PhpStorm
+.idea/
+
+# Project
+/vendor/
+/composer.lock
+/config/config.php

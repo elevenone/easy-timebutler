@@ -1,0 +1,29 @@
+{
+    "name": "nekudo/easy-timebutler",
+    "description": "PWA for timebutler.de",
+    "keywords": ["timebutler", "pwa"],
+    "license": "MIT",
+    "homepage": "https://github.com/nekudo/easy-timebutler",
+    "authors": [
+        {
+            "name": "Simon Samtleben",
+            "email": "simon@bloatless.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Nekudo\\EasyTimebutler\\": "app/"
+        }
+    },
+    "require": {
+        "php": "^7.2",
+        "bloatless/endocore": ">=0.4",
+        "bloatless/endocore-query-builder": "^0.0.1",
+        "defuse/php-encryption": "^2.2"
+    },
+    "scripts": {
+        "post-create-project-cmd": [
+            "cp config/config.sample.php config/config.php"
+        ]
+    }
+}
