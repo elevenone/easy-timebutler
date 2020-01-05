@@ -17,6 +17,8 @@
     },
     "require": {
         "php": "^7.2",
+        "ext-curl": "*",
+        "ext-json": "*",
         "bloatless/endocore": ">=0.4",
         "bloatless/endocore-query-builder": "^0.0.1",
         "defuse/php-encryption": "^2.2"

@@ -10,9 +10,33 @@
 <body>
 
 <h1>Easy Timebutler</h1>
-<main>
-    ...loading...
-</main>
+<main></main>
+
+<template id="tpl-loading">
+    <div>... loading animation ...</div>
+</template>
+
+<template id="tpl-dashboard">
+    <div>
+        <button class="js-stopclock-action" data-action="start">Start</button>
+        <button class="js-stopclock-action" data-action="pause">Pause</button>
+        <button class="js-stopclock-action" data-action="resume">Resume</button>
+        <button class="js-stopclock-action" data-action="stop">Stop</button>
+    </div>
+</template>
+
+<template id="tpl-login-form">
+    <div id="error-message"></div>
+    <form method="post" action="/login">
+        <label for="email">E-Mail</label>
+        <input name="email" type="email">
+
+        <label for="password">Password</label>
+        <input name="password" type="password">
+
+        <input type="submit" id="login-submit-btn">
+    </form>
+</template>
 
 <script src="/app.js"></script>
 </body>

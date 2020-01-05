@@ -10,6 +10,8 @@ use Bloatless\Endocore\Http\Response;
 class ShowHomeAction extends HtmlAction
 {
     /**
+     * Shows index page.
+     *
      * @param array $arguments Possible arguments from the URL.
      * @return Response
      */

@@ -1,8 +1,9 @@
 const elMain = document.querySelector('main');
 
 window.addEventListener('load', e => {
+    showTemplate('#tpl-loading');
     if (isLoggedIn()) {
-        showMainScreen();
+        showDashboard();
         return;
     }
     showLoginForm();
@@ -14,20 +15,21 @@ function isLoggedIn() {
 }
 
 async function showLoginForm() {
-    await fetch('/login')
-        .then((response) => {
-            return response.json();
-        })
-        .then((responseData) => {
-            elMain.innerHTML = responseData.data.content;
-            elMain.querySelector('#login-submit-btn').addEventListener('click', evt => {
-                evt.preventDefault();
-                handleLoginFormSubmit();
-            });
-        })
-        .catch((error) => {
-            console.error('Error:', error);
+    showTemplate('#tpl-login-form');
+    elMain.querySelector('#login-submit-btn').addEventListener('click', evt => {
+        evt.preventDefault();
+        handleLoginFormSubmit();
+    });
+}
+
+async function showDashboard() {
+    showTemplate('#tpl-dashboard');
+    for (const elBtn of elMain.querySelectorAll('.js-stopclock-action')) {
+        elBtn.addEventListener('click', evt => {
+            evt.preventDefault();
+            handleStopclockBtnClick(evt);
         });
+    }
 }
 
 async function handleLoginFormSubmit() {
@@ -46,26 +48,7 @@ async function handleLoginFormSubmit() {
                 return;
             }
             localStorage.setItem('et_token', responseData.data.token);
-            showMainScreen();
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-}
-
-async function showMainScreen() {
-    await fetch('/dashboard')
-        .then((response) => {
-            return response.json();
-        })
-        .then((responseData) => {
-            elMain.innerHTML = responseData.data.content;
-            for (const elBtn of document.querySelectorAll('.js-stopclock-action')) {
-                elBtn.addEventListener('click', evt => {
-                    evt.preventDefault();
-                    handleStopclockBtnClick(evt);
-                });
-            }
+            showDashboard();
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -89,4 +72,11 @@ async function handleStopclockBtnClick(evt) {
         .catch((error) => {
             console.error('Error:', error);
         });
+}
+
+function showTemplate(templateId) {
+    const tplDashboard = document.querySelector(templateId);
+    const tplDashboardClone = tplDashboard.content.cloneNode(true);
+    elMain.innerHTML = '';
+    elMain.appendChild(tplDashboardClone);
 }

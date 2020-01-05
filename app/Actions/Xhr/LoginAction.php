@@ -22,6 +22,12 @@ class LoginAction extends JsonAction
         $this->setResponder(new LoginResponder($this->config));
     }
 
+    /**
+     * Executes timebutler login.
+     *
+     * @param array $arguments
+     * @return Response
+     */
     public function __invoke(array $arguments = []): Response
     {
         $email = (string) $this->request->getParam('email', '');

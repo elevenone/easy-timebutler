@@ -6,16 +6,168 @@ namespace Nekudo\EasyTimebutler\Services\Timebutler;
 
 class Timebutler
 {
+    /**
+     * @var string $tmpDir
+     */
     private $tmpDir;
 
+    /**
+     * Sets path to tmp-dir. Used for storing cookie files.
+     *
+     * @param string $pathToTmpDir
+     * @throws TimebutlerException
+     */
     public function setTmpDir(string $pathToTmpDir): void
     {
         if (!file_exists($pathToTmpDir)) {
-            throw new \RuntimeException('Invalid path to tmp-dir provided. Check timebutler config.');
+            throw new TimebutlerException('Invalid path to tmp-dir provided. Check timebutler config.');
         }
         $this->tmpDir = rtrim($pathToTmpDir, '/');
     }
 
+    /**
+     * Starts the stopclock and returns state of clock.
+     *
+     * @param string $email
+     * @param string $password
+     * @return \stdClass
+     * @throws TimebutlerException
+     */
+    public function startClock(string $email, string $password): \stdClass
+    {
+        // login
+        $this->loginIfRequired($email, $password);
+
+        // start clock and return clock state
+        $response = $this->doGetRequest([
+            'ha' => 'zee',
+            'ac' => 101,
+            'compid' => '',
+            'ajx' => 1,
+            'passwort' => $password,
+            '_' => $this->getTimeString(),
+        ], $email);
+        $clockState = $this->parseClockResponse($response);
+        if ($clockState->running !== 1 || $clockState->state !== 1) {
+            throw new TimebutlerException('Could not start stopclock. Unexpected response.');
+        }
+
+        return $clockState;
+    }
+
+    /**
+     * Pauses stopclock and returns new stopclock state.
+     *
+     * @param string $email
+     * @param string $password
+     * @return \stdClass
+     * @throws TimebutlerException
+     */
+    public function pauseClock(string $email, string $password): \stdClass
+    {
+        // login
+        $this->loginIfRequired($email, $password);
+
+        // pause clock and return clock state
+        $response = $this->doGetRequest([
+            'ha' => 'zee',
+            'ac' => 102,
+            'compid' => '',
+            'ajx' => 1,
+            'passwort' => $password,
+            '_' => $this->getTimeString(),
+        ], $email);
+        $clockState = $this->parseClockResponse($response);
+        if ($clockState->running !== 0 || $clockState->paused !== 1) {
+            throw new TimebutlerException('Could not pause stopclock. Unexpected response.');
+        }
+
+        return $clockState;
+    }
+
+    /**
+     * Resumes stopclock and returns new stopclock state.
+     *
+     * @param string $email
+     * @param string $password
+     * @return \stdClass
+     * @throws TimebutlerException
+     */
+    public function resumeClock(string $email, string $password): \stdClass
+    {
+        return $this->startClock($email, $password);
+    }
+
+    /**
+     * Stops (and saves) stopclock and returns new stopclock state.
+     *
+     * @param string $email
+     * @param string $password
+     * @return \stdClass
+     * @throws TimebutlerException
+     */
+    public function stopClock(string $email, string $password): \stdClass
+    {
+        // login
+        $this->loginIfRequired($email, $password);
+
+        // stop clock
+        $this->doGetRequest([
+            'ha' => 'zee',
+            'ac' => 110,
+            'compid' => '',
+            'ajx' => 1,
+            'passwort' => $password,
+            '_' => $this->getTimeString(),
+        ], $email);
+
+        // save clock
+        $response = $this->doGetRequest([
+            'ha' => 'zee',
+            'ac' => 103,
+            'compid' => '',
+            'ajx' => 1,
+            'passwort' => $password,
+            '_' => $this->getTimeString(),
+        ], $email);
+        $clockState = $this->parseClockResponse($response);
+        if ($clockState->running !== 0 || $clockState->pause !== 0) {
+            throw new TimebutlerException('Could not stop stopclock. Unexpected response.');
+        }
+
+        return $clockState;
+    }
+
+    /**
+     * Requests current login and stopclock state from timebutler.
+     *
+     * @todo Parse stopclock information.
+     *
+     * @param string $email
+     * @param string $password
+     * @return array
+     * @throws TimebutlerException
+     */
+    public function getStateInfo(string $email, string $password): array
+    {
+        $stateInfo = [
+            'logged_in' => false,
+        ];
+
+        $response = $this->doGetRequest([], $email);
+        $stateInfo['logged_in'] = (strpos($response, 'do?ha=login&ac=2') !== false);
+
+        return $stateInfo;
+    }
+
+    /**
+     * Sends login request to timebutler.
+     *
+     * @param string $email
+     * @param string $password
+     * @return bool
+     * @throws TimebutlerException
+     */
     public function login(string $email, string $password): bool
     {
         $requestParams = http_build_query([
@@ -43,12 +195,104 @@ class Timebutler
 
         // on response code other than 200 something went wrong
         if ($status !== 200) {
-            return false;
+            throw new TimebutlerException('Unexpected response during timebutler http request.');
         }
 
         // check if logout link is present to be sure we are logged in
         if (strpos($response, 'do?ha=login&ac=2') === false) {
             return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Sends GET request with given parameters to timebutler.
+     *
+     * @param array $requestParams
+     * @param string $email
+     * @return string
+     * @throws TimebutlerException
+     */
+    private function doGetRequest(array $requestParams, string $email): string
+    {
+        $cookieFile = $this->tmpDir . '/' . sha1($email) . '.txt';
+        $url = 'https://timebutler.de/do';
+        if (!empty($requestParams)) {
+            $url .= '?' . http_build_query($requestParams);
+        }
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+        curl_setopt($ch, CURLOPT_REFERER, 'https://timebutler.de/');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($status !== 200) {
+            throw new TimebutlerException('Unexpected response during timebutler http request.');
+        }
+
+        return $response;
+    }
+
+    /**
+     * Generates time-string for usage in timebutler requests.
+     *
+     * @return string
+     */
+    private function getTimeString(): string
+    {
+        $time = (string) time();
+        $time .= (string) rand(100, 999);
+
+        return $time;
+    }
+
+    /**
+     * Parses stop-state from a stopclock-action-response.
+     *
+     * @param string $response
+     * @return \stdClass
+     * @throws TimebutlerException
+     */
+    private function parseClockResponse(string $response): \stdClass
+    {
+        $responseData = json_decode($response);
+        if ($responseData->result[0] !== 0) {
+            throw new TimebutlerException('Result code in start-response is expected to be 0');
+        }
+        $responsePayload = $responseData->payload[0];
+
+        return (object) [
+            'state' => $responsePayload->state,
+            'running' => $responsePayload->running,
+            'paused' => $responsePayload->paused,
+            'pausesec' => $responsePayload->pausesec,
+            'dauersec' => $responsePayload->dauersec,
+        ];
+    }
+
+    /**
+     * Sends login-request to timebutler if user is not currently logged in.
+     *
+     * @param string $email
+     * @param string $password
+     * @return bool
+     * @throws TimebutlerException
+     */
+    private function loginIfRequired(string $email, string $password): bool
+    {
+        $state = $this->getStateInfo($email, $password);
+        if ($state['logged_in'] === true) {
+            return true;
+        }
+
+        $loginResult = $this->login($email, $password);
+        if ($loginResult === false) {
+            throw new TimebutlerException('Could not login to timebutler. Check credentials.');
         }
 
         return true;

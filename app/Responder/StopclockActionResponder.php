@@ -8,10 +8,10 @@ use Bloatless\Endocore\Http\Response;
 use Bloatless\Endocore\Responder\JsonResponder;
 use Nekudo\EasyTimebutler\Domains\Payload;
 
-class LoginResponder extends JsonResponder
+class StopclockActionResponder extends JsonResponder
 {
     /**
-     * Generates response object to a login request.
+     * Generates response to a stopclock-action request.
      *
      * @param Payload $payload
      * @return Response
@@ -20,9 +20,7 @@ class LoginResponder extends JsonResponder
     {
         $payloadResult = $payload->getResult();
         if ($payload->getStatus() === Payload::STATUS_FOUND) {
-            return $this->found([
-                'token' => $payloadResult['user']->token,
-            ]);
+            return $this->found($payloadResult);
         }
 
         return $this->error([$payloadResult['error'] ?? 'Unknown Error']);

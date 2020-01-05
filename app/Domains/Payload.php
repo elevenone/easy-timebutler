@@ -42,8 +42,14 @@ class Payload
     /** User input was valid. */
     const STATUS_VALID = 'VALID';
 
+    /**
+     * @var string $status
+     */
     private $status = '';
 
+    /**
+     * @var array $result
+     */
     private $result = [];
 
     public function __construct(string $status, array $result = [])
@@ -52,11 +58,21 @@ class Payload
         $this->result = $result;
     }
 
+    /**
+     * Returns the status.
+     *
+     * @return string
+     */
     public function getStatus() : string
     {
         return $this->status;
     }
 
+    /**
+     * Returns the result.
+     *
+     * @return array
+     */
     public function getResult() : array
     {
         return $this->result;
