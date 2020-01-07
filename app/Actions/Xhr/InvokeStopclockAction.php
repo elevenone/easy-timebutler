@@ -48,6 +48,9 @@ class InvokeStopclockAction extends JsonAction
             case 'stop':
                 $payload = $domain->stopClock($token);
                 break;
+            case 'state':
+                $payload = $domain->getTimebutlerState($token);
+                break;
             default:
                 $payload = new Payload(Payload::STATUS_ERROR, ['error' => 'Invalid action requested.']);
                 break;

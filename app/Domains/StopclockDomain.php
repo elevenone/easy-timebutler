@@ -78,6 +78,31 @@ class StopclockDomain extends Domain
     }
 
     /**
+     * Fetches login and stopclock state from timebutler.
+     *
+     * @param string $token
+     * @return Payload
+     * @throws \Bloatless\Endocore\Components\QueryBuilder\Exception\DatabaseException
+     */
+    public function getTimebutlerState(string $token): Payload
+    {
+        $credentials = $this->authDomain->getCredentialsByToken($token);
+        if (empty($credentials)) {
+            return new Payload(Payload::STATUS_ERROR, ['error' => 'Invalid token provided.']);
+        }
+
+        try {
+            $state = $this->timebutlerService->getState($credentials['email']);
+        } catch (TimebutlerException $e) {
+            return new Payload(Payload::STATUS_ERROR, ['error' => $e->getMessage()]);
+        }
+
+        return new Payload(Payload::STATUS_FOUND, [
+            'state' => $state
+        ]);
+    }
+
+    /**
      * Requests a stopclock action at timebutler.
      *
      * @param string $action

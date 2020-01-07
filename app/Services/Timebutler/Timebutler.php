@@ -141,23 +141,43 @@ class Timebutler
     /**
      * Requests current login and stopclock state from timebutler.
      *
-     * @todo Parse stopclock information.
-     *
      * @param string $email
-     * @param string $password
      * @return array
      * @throws TimebutlerException
      */
-    public function getStateInfo(string $email, string $password): array
+    public function getState(string $email): array
     {
-        $stateInfo = [
+        $state = [
             'logged_in' => false,
+            'clock_state' => false,
         ];
 
         $response = $this->doGetRequest([], $email);
-        $stateInfo['logged_in'] = (strpos($response, 'do?ha=login&ac=2') !== false);
+        $state['logged_in'] = (strpos($response, 'do?ha=login&ac=2') !== false);
+        if ($state['logged_in'] === false) {
+            return $state;
+        }
 
-        return $stateInfo;
+        // parse clock state from response
+        $pattern = '/data-state="(?<state>\d)"\s+';
+        $pattern .= 'data-running="(?<running>\d)"\s+';
+        $pattern .= 'data-paused="(?<paused>\d)"\s+';
+        $pattern .= 'data-pausesec="(?<pausesec>\d+)"\s+';
+        $pattern .= 'data-dauersec="(?<dauersec>\d+)"/sU';
+        $matchCount = preg_match($pattern, $response, $matches);
+        if ($matchCount !== 1) {
+            throw new TimebutlerException('Could not parese clock-state from response.');
+        }
+
+        $state['clock_state'] = (object) [
+            'state' => (int) $matches['state'],
+            'running' => (int) $matches['running'],
+            'paused' => (int) $matches['paused'],
+            'pausesec' => (int) $matches['pausesec'],
+            'dauersec' => (int) $matches['dauersec'],
+        ];
+
+        return $state;
     }
 
     /**
@@ -285,7 +305,7 @@ class Timebutler
      */
     private function loginIfRequired(string $email, string $password): bool
     {
-        $state = $this->getStateInfo($email, $password);
+        $state = $this->getState($email);
         if ($state['logged_in'] === true) {
             return true;
         }
