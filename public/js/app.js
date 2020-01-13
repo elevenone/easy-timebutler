@@ -1,15 +1,34 @@
+import Stopclock from './libs/stopclock.js';
+
 const elMain = document.querySelector('main');
+let installPrompt;
 
 window.addEventListener('load', e => {
     showTemplate('#tpl-loading');
-    if (isLoggedIn()) {
+
+    if ('serviceWorker' in navigator) {
+        try {
+            navigator.serviceWorker.register('/sw.js');
+            console.log('ServiceWorker registered.');
+        } catch (e) {
+            console.error('Could not register ServiceWorker.');
+        }
+    }
+
+    if (hasToken()) {
         showDashboard();
         return;
     }
     showLoginForm();
+
+    window.addEventListener('beforeinstallprompt', event => {
+       event.preventDefault();
+       installPrompt = event;
+       // @todo add an install to home button
+    });
 });
 
-function isLoggedIn() {
+function hasToken() {
     const token = localStorage.getItem('et_token');
     return token !== null;
 }
@@ -24,12 +43,8 @@ async function showLoginForm() {
 
 async function showDashboard() {
     showTemplate('#tpl-dashboard');
-    for (const elBtn of elMain.querySelectorAll('.js-stopclock-action')) {
-        elBtn.addEventListener('click', evt => {
-            evt.preventDefault();
-            handleStopclockBtnClick(evt);
-        });
-    }
+    const token = localStorage.getItem('et_token');
+    const stopclock = new Stopclock(elMain.querySelector('#stopclock'), token);
 }
 
 async function handleLoginFormSubmit() {
@@ -49,25 +64,6 @@ async function handleLoginFormSubmit() {
             }
             localStorage.setItem('et_token', responseData.data.token);
             showDashboard();
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-}
-
-async function handleStopclockBtnClick(evt) {
-    const elEvtSource = evt.target;
-    const params = new URLSearchParams({
-        action: elEvtSource.getAttribute('data-action'),
-        token: localStorage.getItem('et_token'),
-    });
-
-    await fetch('/stopclock?' + params.toString(), { method: 'POST' })
-        .then((response) => {
-            return response.json();
-        })
-        .then((responseData) => {
-            console.log(responseData);
         })
         .catch((error) => {
             console.error('Error:', error);

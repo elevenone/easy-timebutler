@@ -6,39 +6,73 @@
     <title>Easy Timebutler</title>
     <meta name="robots" content="noindex,nofollow" />
     <meta name="description" content="Easy Timebutler">
+    <link rel="stylesheet" href="/css/spectre.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
 
-<h1>Easy Timebutler</h1>
-<main></main>
+<header class="navbar bg-gray p-1">
+    <section class="navbar-section">
+        <a href="/" class="navbar-brand text-bold">EasyTimebutler</a>
+    </section>
+    <section class="navbar-section">
+        ATH
+    </section>
+</header>
+
+
+<main>
+    <div class="loading loading-lg"></div>
+</main>
 
 <template id="tpl-loading">
-    <div>... loading animation ...</div>
+    <div class="loading loading-lg"></div>
 </template>
 
 <template id="tpl-dashboard">
-    <div>
-        <button class="js-stopclock-action" data-action="start">Start</button>
-        <button class="js-stopclock-action" data-action="pause">Pause</button>
-        <button class="js-stopclock-action" data-action="resume">Resume</button>
-        <button class="js-stopclock-action" data-action="stop">Stop</button>
-        <button class="js-stopclock-action" data-action="state">Status</button>
+    <div class="container" id="stopclock">
+        <div class="columns">
+            <div class="col-12 text-center">
+                <div id="clock-main">00:00</div>
+                <div id="clock-pause">00:00</div>
+            </div>
+            <div class="col-12">
+                <button class="js-stopclock-action btn btn-success" data-action="start">Start</button>
+                <button class="js-stopclock-action btn" data-action="pause">Pause</button>
+                <button class="js-stopclock-action btn" data-action="resume">Resume</button>
+                <button class="js-stopclock-action btn btn-error" data-action="stop">Stop</button>
+                <button class="js-stopclock-action btn" data-action="state">Status</button>
+            </div>
+            <div class="col-12">
+                <em>Status:</em> <span id="clock-state"></span>
+            </div>
+        </div>
     </div>
 </template>
 
 <template id="tpl-login-form">
-    <div id="error-message"></div>
-    <form method="post" action="/login">
-        <label for="email">E-Mail</label>
-        <input name="email" type="email">
+    <div class="container">
+        <div class="columns">
+            <div class="col-8 col-mx-auto">
+                <div id="error-message"></div>
+                <form method="post" action="/login">
+                    <div class="form-group">
+                        <label class="form-label" for="email">E-Mail</label>
+                        <input class="form-input" type="email" name="email" placeholder="foo@bar.de">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-input" type="password" name="password">
+                    </div>
 
-        <label for="password">Password</label>
-        <input name="password" type="password">
-
-        <input type="submit" id="login-submit-btn">
-    </form>
+                    <input type="submit" id="login-submit-btn" class="btn btn-primary" value="Login">
+                </form>
+            </div>
+        </div>
+    </div>
 </template>
 
-<script src="/app.js"></script>
+<script src="/js/app.js" type="module"></script>
 </body>
 </html>
