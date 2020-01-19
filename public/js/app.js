@@ -15,18 +15,23 @@ window.addEventListener('load', e => {
         }
     }
 
+    window.addEventListener('beforeinstallprompt', event => {
+        event.preventDefault();
+        installPrompt = event;
+    });
+
     if (hasToken()) {
         showDashboard();
         return;
     }
     showLoginForm();
-
-    window.addEventListener('beforeinstallprompt', event => {
-       event.preventDefault();
-       installPrompt = event;
-       // @todo add an install to home button
-    });
 });
+
+async function addToHome() {
+    installPrompt.prompt();
+    const installed = await installPrompt.userChoice;
+    installPrompt = null;
+}
 
 function hasToken() {
     const token = localStorage.getItem('et_token');
@@ -45,6 +50,9 @@ async function showDashboard() {
     showTemplate('#tpl-dashboard');
     const token = localStorage.getItem('et_token');
     const stopclock = new Stopclock(elMain.querySelector('#stopclock'), token);
+    document.querySelector('#ath-trigger').addEventListener('click', evt => {
+       addToHome();
+    });
 }
 
 async function handleLoginFormSubmit() {

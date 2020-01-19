@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Easy Timebutler</title>
     <meta name="robots" content="noindex,nofollow" />
     <meta name="description" content="Easy Timebutler">
@@ -17,7 +17,7 @@
         <a href="/" class="navbar-brand text-bold">EasyTimebutler</a>
     </section>
     <section class="navbar-section">
-        ATH
+        <span id="ath-trigger">ATH</span>
     </section>
 </header>
 
@@ -34,8 +34,8 @@
     <div class="container" id="stopclock">
         <div class="columns">
             <div class="col-12 text-center">
-                <div id="clock-main">00:00</div>
-                <div id="clock-pause">00:00</div>
+                <div id="clock-main">00:00:00</div>
+                <div id="clock-pause">00:00:00</div>
             </div>
             <div class="col-12">
                 <button class="js-stopclock-action btn btn-success" data-action="start">Start</button>

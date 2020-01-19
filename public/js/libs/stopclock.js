@@ -130,7 +130,23 @@ export default class Stopclock {
     }
 
     stopClock() {
+        const params = new URLSearchParams({
+            action: 'stop',
+            token: this.token,
+        });
 
+        fetch('/stopclock?' + params.toString(), { method: 'POST' })
+            .then((response) => {
+                return response.json();
+            })
+            .then((responseData) => {
+                this.updateState(responseData.data.clock_state);
+                this.stopMainTimer();
+                this.stopPauseTimer();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
     }
 
     updateState(clockState) {
