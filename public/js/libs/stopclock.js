@@ -31,28 +31,41 @@ export default class Stopclock {
     handleButtonClick(evt) {
         const elEvtSource = evt.target;
         const action = elEvtSource.getAttribute('data-action');
+        elEvtSource.classList.add('loading', 'disabled');
         switch (action) {
             case "start":
-                return this.startClock();
+                return this.startClock().then(() => {
+                    elEvtSource.classList.remove('loading', 'disabled');
+                });
             case "pause":
-                return this.pauseClock();
+                return this.pauseClock().then(() => {
+                    elEvtSource.classList.remove('loading', 'disabled');
+                });
             case "resume":
-                return this.resumeClock();
+                return this.resumeClock().then(() => {
+                    elEvtSource.classList.remove('loading', 'disabled');
+                });
             case "stop":
-                return this.stopClock();
+                return this.stopClock().then(() => {
+                    elEvtSource.classList.remove('loading', 'disabled');
+                });
+            case "state":
+                return this.syncClock().then(() => {
+                    elEvtSource.classList.remove('loading', 'disabled');
+                });
             default:
                 console.error('Invalid stopclock action requested.');
         }
     }
 
-    syncClock() {
+    async syncClock() {
         const params = new URLSearchParams({
             action: 'state',
             token: this.token,
         });
 
         this.elStateIndicatior.innerText = 'Syncing...';
-        fetch('/stopclock?' + params.toString(), { method: 'POST' })
+        await fetch('/stopclock?' + params.toString(), { method: 'POST' })
             .then((response) => {
                 return response.json();
             })
@@ -70,13 +83,17 @@ export default class Stopclock {
             });
     }
 
-    startClock() {
+    async startClock() {
+        if (this.running === 1) {
+            return;
+        }
+
         const params = new URLSearchParams({
             action: 'start',
             token: this.token,
         });
 
-        fetch('/stopclock?' + params.toString(), { method: 'POST' })
+        await fetch('/stopclock?' + params.toString(), { method: 'POST' })
             .then((response) => {
                 return response.json();
             })
@@ -89,13 +106,17 @@ export default class Stopclock {
             });
     }
 
-    pauseClock() {
+    async pauseClock() {
+        if (this.paused === 1) {
+            return;
+        }
+
         const params = new URLSearchParams({
             action: 'pause',
             token: this.token,
         });
 
-        fetch('/stopclock?' + params.toString(), { method: 'POST' })
+        await fetch('/stopclock?' + params.toString(), { method: 'POST' })
             .then((response) => {
                 return response.json();
             })
@@ -109,13 +130,17 @@ export default class Stopclock {
             });
     }
 
-    resumeClock() {
+    async resumeClock() {
+        if (this.running === 1 || this.paused !== 1) {
+            return;
+        }
+
         const params = new URLSearchParams({
             action: 'resume',
             token: this.token,
         });
 
-        fetch('/stopclock?' + params.toString(), { method: 'POST' })
+        await fetch('/stopclock?' + params.toString(), { method: 'POST' })
             .then((response) => {
                 return response.json();
             })
@@ -129,13 +154,17 @@ export default class Stopclock {
             });
     }
 
-    stopClock() {
+    async stopClock() {
+        if (this.running === 0 && this.paused === 0) {
+            return;
+        }
+
         const params = new URLSearchParams({
             action: 'stop',
             token: this.token,
         });
 
-        fetch('/stopclock?' + params.toString(), { method: 'POST' })
+        await fetch('/stopclock?' + params.toString(), { method: 'POST' })
             .then((response) => {
                 return response.json();
             })
@@ -163,16 +192,14 @@ export default class Stopclock {
 
         if (this.running === 0 && this.paused === 0) {
             this.elStateIndicatior.innerText = 'Stopped';
+            this.stopMainTimer();
+            this.stopPauseTimer();
         } else if (this.running === 1 && this.paused === 0) {
             this.elStateIndicatior.innerText = 'Running';
-            if (!this.mainClockTimer) {
-                this.startMainTimer();
-            }
+            this.startMainTimer();
         } else if (this.running === 0 && this.paused === 1) {
             this.elStateIndicatior.innerText = 'Paused';
-            if (!this.pauseClockTimer) {
-                this.startPauseTimer();
-            }
+            this.startPauseTimer();
         } else {
             this.elStateIndicatior.innerText = 'Unknown';
         }
@@ -193,7 +220,9 @@ export default class Stopclock {
     }
 
     startMainTimer() {
-        this.mainTimer();
+        if (!this.mainClockTimer) {
+            this.mainTimer();
+        }
     }
 
     stopMainTimer() {
@@ -207,7 +236,9 @@ export default class Stopclock {
     }
 
     startPauseTimer() {
-        this.pauseTimer();
+        if (!this.pauseClockTimer) {
+            this.pauseTimer();
+        }
     }
 
     stopPauseTimer() {
