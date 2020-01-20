@@ -131,7 +131,7 @@ class Timebutler
             '_' => $this->getTimeString(),
         ], $email);
         $clockState = $this->parseClockResponse($response);
-        if ($clockState->running !== 0 || $clockState->pause !== 0) {
+        if ($clockState->running !== 0 || $clockState->paused !== 0) {
             throw new TimebutlerException('Could not stop stopclock. Unexpected response.');
         }
 
