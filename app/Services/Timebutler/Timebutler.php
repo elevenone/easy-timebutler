@@ -44,7 +44,6 @@ class Timebutler
             'ac' => 101,
             'compid' => '',
             'ajx' => 1,
-            'passwort' => $password,
             '_' => $this->getTimeString(),
         ], $email);
         $clockState = $this->parseClockResponse($response);
@@ -74,7 +73,6 @@ class Timebutler
             'ac' => 102,
             'compid' => '',
             'ajx' => 1,
-            'passwort' => $password,
             '_' => $this->getTimeString(),
         ], $email);
         $clockState = $this->parseClockResponse($response);
@@ -117,7 +115,6 @@ class Timebutler
             'ac' => 110,
             'compid' => '',
             'ajx' => 1,
-            'passwort' => $password,
             '_' => $this->getTimeString(),
         ], $email);
 
@@ -125,9 +122,9 @@ class Timebutler
         $response = $this->doGetRequest([
             'ha' => 'zee',
             'ac' => 103,
+            'ignorePausReg' => 1,
             'compid' => '',
             'ajx' => 1,
-            'passwort' => $password,
             '_' => $this->getTimeString(),
         ], $email);
         $clockState = $this->parseClockResponse($response);
