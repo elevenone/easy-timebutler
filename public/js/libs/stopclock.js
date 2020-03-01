@@ -1,5 +1,5 @@
 export default class Stopclock {
-    constructor(el, token) {
+    constructor(el, token, initialState) {
         this.elStopclock = el;
         this.elStateIndicatior = el.querySelector('#clock-state');
         this.elMainClock = el.querySelector('#clock-main');
@@ -16,7 +16,7 @@ export default class Stopclock {
         this.dauersec = 0;
 
         this.registerListeners();
-        this.syncClock();
+        this.updateState(initialState);
     }
 
     registerListeners() {

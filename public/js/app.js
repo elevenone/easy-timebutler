@@ -20,12 +20,21 @@ window.addEventListener('load', e => {
         installPrompt = event;
     });
 
-    if (hasToken()) {
-        showDashboard();
-        return;
-    }
-    showLoginForm();
+    initView();
 });
+
+async function initView() {
+    if (!hasToken()) {
+        return showLoginForm();
+    }
+
+    const currentState = await getCurrentState();
+    if (currentState.logged_in !== true) {
+        return showLoginForm();
+    }
+
+    return showDashboard(currentState.clock_state);
+}
 
 async function addToHome() {
     installPrompt.prompt();
@@ -38,6 +47,30 @@ function hasToken() {
     return token !== null;
 }
 
+async function getCurrentState() {
+    const params = new URLSearchParams({
+        action: 'state',
+        token: localStorage.getItem('et_token'),
+    });
+
+    return await fetch('/stopclock?' + params.toString(), { method: 'POST' })
+        .then((response) => {
+            return response.json();
+        })
+        .then((responseData) => {
+            if (!responseData.data) {
+                console.error('Unexpected response.');
+                return false;
+            }
+
+            return responseData.data.state;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            // @todo show error message
+        });
+}
+
 async function showLoginForm() {
     showTemplate('#tpl-login-form');
     elMain.querySelector('#login-submit-btn').addEventListener('click', evt => {
@@ -46,10 +79,10 @@ async function showLoginForm() {
     });
 }
 
-async function showDashboard() {
+async function showDashboard(clockState) {
     showTemplate('#tpl-dashboard');
     const token = localStorage.getItem('et_token');
-    const stopclock = new Stopclock(elMain.querySelector('#stopclock'), token);
+    new Stopclock(elMain.querySelector('#stopclock'), token, clockState);
     document.querySelector('#ath-trigger').addEventListener('click', evt => {
        addToHome();
     });
